@@ -1,0 +1,31 @@
+.idea
+.DS_Store
+env3.7
+frontend/node_modules
+notebooks/.ipynb_checkpoints
+data/API_KEY.json
+
+frontend/quantum-finance-predictions-app/.DS_Store
+frontend/quantum-finance-predictions-app/node_modules
+frontend/quantum-finance-predictions-app//dist
+
+
+# local env files
+frontend/quantum-finance-predictions-app/.env.local
+frontend/quantum-finance-predictions-app/.env.*.local
+
+# Log files
+frontend/quantum-finance-predictions-app/npm-debug.log*
+frontend/quantum-finance-predictions-app/yarn-debug.log*
+frontend/quantum-finance-predictions-app/yarn-error.log*
+frontend/quantum-finance-predictions-app/pnpm-debug.log*
+
+# Editor directories and files
+frontend/quantum-finance-predictions-app/.idea
+frontend/quantum-finance-predictions-app/.vscode
+frontend/quantum-finance-predictions-app/*.suo
+frontend/quantum-finance-predictions-app/*.ntvs*
+frontend/quantum-finance-predictions-app/*.njsproj
+frontend/quantum-finance-predictions-app/*.sln
+frontend/quantum-finance-predictions-app/*.sw?
+
