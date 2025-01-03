@@ -1,0 +1,9 @@
+qiskit
+flask
+pandas
+torch
+numpy
+yfinance
+requests
+scikit-learn
+matplotlib
