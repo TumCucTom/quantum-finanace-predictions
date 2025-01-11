@@ -64,6 +64,17 @@ To run the app locally, make sure you have the following dependencies installed:
 
 5. **Open the `xx.ipynb` notebooks** to build your own version of the model.
 
+6. **Finance API**
+   Go to [Alpha Vantage](https://www.alphavantage.co/support/#api-key) to get your api key for getting stock prices.
+   
+   Make a API_KEY.json file to hold your key:
+   ```json
+   {
+    "API_KEY": "your_key"
+   }
+
+   ```
+
 ## Project Workflow
 
 Creating the Quantum Neural Network (QNN)-powered stock market prediction web app involves several stages:
