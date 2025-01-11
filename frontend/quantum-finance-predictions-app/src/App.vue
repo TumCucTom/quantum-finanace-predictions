@@ -15,17 +15,19 @@
       </div>
     </section>
 
-    <section class="prediction-section" v-if="stockData.length">
+    <section class="prediction-section" v-if="stockImage">
       <h2>Stock Data</h2>
-      <!-- Plotly graph will be rendered here -->
-      <div id="stockGraph" class="plotly-chart"></div>
+      <div class="image-container">
+        <img :src="stockImage" alt="Stock Data Graph" class="graph-image" />
+      </div>
 
       <button class="predict-btn" @click="predictStockPrices">Predict Future Prices</button>
 
-      <div v-if="predictions.length">
+      <div v-if="predictionImage">
         <h2>Predicted Prices</h2>
-        <!-- Plotly graph for predictions -->
-        <div id="predictionGraph" class="plotly-chart"></div>
+        <div class="image-container">
+          <img :src="predictionImage" alt="Predicted Prices Graph" class="graph-image" />
+        </div>
       </div>
     </section>
 
@@ -41,44 +43,26 @@
 
 <script>
 import axios from "axios";
-import Plotly from 'plotly.js-dist';
 
 export default {
   name: "App",
   data() {
     return {
       ticker: "",
-      stockData: [],
-      predictions: [],
-      graphLayout: {
-        title: "Stock Prices",
-        xaxis: { title: "Date" },
-        yaxis: { title: "Price" },
-      },
+      stockImage: "",
+      predictionImage: "",
     };
   },
   methods: {
     async loadDefaultData() {
       try {
-        const response = await axios.get("AAPL_preprocessed_data.csv");
-        const csvData = response.data;
-        const parsedData = this.parseCSV(csvData);
-        this.stockData = parsedData;
-        this.updateStockGraph();
+        const response = await axios.get("http://127.0.0.1:5000/default_stock_image", {
+          responseType: "blob",
+        });
+        this.stockImage = URL.createObjectURL(response.data);
       } catch (error) {
-        console.error("Error loading default data:", error);
+        console.error("Error loading default data image:", error);
       }
-    },
-
-    parseCSV(csvString) {
-      const rows = csvString.split("\n").map((row) => row.split(","));
-      const headers = rows.shift();
-      return rows.map((row) =>
-          row.reduce((obj, value, index) => {
-            obj[headers[index]] = isNaN(value) ? value : parseFloat(value);
-            return obj;
-          }, {})
-      );
     },
 
     handleFileUpload(event) {
@@ -89,10 +73,10 @@ export default {
       axios
           .post("http://127.0.0.1:5000/predict", formData, {
             headers: { "Content-Type": "multipart/form-data" },
+            responseType: "blob",
           })
           .then((response) => {
-            this.predictions = response.data;
-            this.updatePredictionGraph();
+            this.predictionImage = URL.createObjectURL(response.data);
           })
           .catch((error) => {
             console.error("Error uploading file:", error);
@@ -106,88 +90,33 @@ export default {
       }
 
       axios
-          .get(`http://127.0.0.1:5000/fetch_stock?ticker=${this.ticker}`)
+          .get(`http://127.0.0.1:5000/fetch_stock_image?ticker=${this.ticker}`, {
+            responseType: "blob",
+          })
           .then((response) => {
-            console.log("Fetched data:", response.data);
-            if (Array.isArray(response.data)) {
-              this.stockData = response.data;
-              this.updateStockGraph();
-            } else {
-              console.error("Received data is not an array:", response.data);
-              alert("Error: Data format is invalid.");
-            }
+            this.stockImage = URL.createObjectURL(response.data);
           })
           .catch((error) => {
-            console.error("Error fetching stock data:", error);
+            console.error("Error fetching stock data image:", error);
             alert("An error occurred while fetching the stock data.");
           });
     },
 
     predictStockPrices() {
       const formData = new FormData();
-      const csvData = this.convertToCSV(this.stockData);
-      const blob = new Blob([csvData], { type: "text/csv" });
-      formData.append("file", blob, "stock_data.csv");
+      formData.append("ticker", this.ticker);
 
       axios
-          .post("http://127.0.0.1:5000/predict", formData, {
+          .post("http://127.0.0.1:5000/predict_image", formData, {
             headers: { "Content-Type": "multipart/form-data" },
+            responseType: "blob",
           })
           .then((response) => {
-            this.predictions = response.data;
-            this.updatePredictionGraph();
+            this.predictionImage = URL.createObjectURL(response.data);
           })
           .catch((error) => {
             console.error("Error predicting stock prices:", error);
           });
-    },
-
-    updateStockGraph() {
-      this.$nextTick(() => {
-        // Now it's safe to access the DOM and create the Plotly graph
-        const graphDiv = document.getElementById("stock-graph");
-
-        if (graphDiv) {
-          // Prepare data and layout for Plotly
-          const dates = this.stockData.map((d) => d.index);
-          const prices = this.stockData.map((d) => d.close);
-          const graphData = [
-            {
-              x: dates,
-              y: prices,
-              type: "scatter",
-              mode: "lines+markers",
-              name: "Stock Prices",
-            },
-          ];
-
-          // Render the Plotly graph
-          Plotly.newPlot(graphDiv, graphData, this.graphLayout);
-        } else {
-          console.error("Graph div not found");
-        }
-      });
-    },
-
-    updatePredictionGraph() {
-      const dates = this.predictions.map((p) => p.index);
-      const predictedPrices = this.predictions.map((p) => p.predictions);
-      const predictionGraphData = [
-        {
-          x: dates,
-          y: predictedPrices,
-          type: "scatter",
-          mode: "lines+markers",
-          name: "Predicted Prices",
-        },
-      ];
-      Plotly.newPlot(this.$refs.predictionGraph, predictionGraphData, this.graphLayout);
-    },
-
-    convertToCSV(data) {
-      const headers = Object.keys(data[0]).join(",");
-      const rows = data.map((row) => Object.values(row).join(","));
-      return [headers, ...rows].join("\n");
     },
   },
   created() {
@@ -197,6 +126,7 @@ export default {
 </script>
 
 <style>
+
 * {
   margin: 0;
   padding: 0;
@@ -337,4 +267,12 @@ button:hover {
     padding: 20px;
   }
 }
+
+.graph-image {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+}
+
 </style>
